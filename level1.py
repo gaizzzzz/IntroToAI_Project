@@ -2,6 +2,7 @@ import pygame
 import heapq
 import time
 import random
+from collections import deque
 
 # Constants
 GRID_SIZE = 30
@@ -49,6 +50,30 @@ def astar_search(start, goal, walls):
                 neighbor.g = current.g + 1
                 neighbor.h = abs(neighbor.x - goal.x) + abs(neighbor.y - goal.y)
                 heapq.heappush(open_set, neighbor)
+
+#BFS Search
+def bfs_search(start, goal, walls):
+    queue = deque([start])
+    visited = set()
+
+    while queue:
+        current = queue.popleft()
+        if current.x == goal.x and current.y == goal.y:
+            path = []
+            while current:
+                path.append((current.x, current.y))
+                current = current.parent
+            return path[::-1]
+
+        visited.add((current.x, current.y))
+
+        for dx, dy in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
+            new_x, new_y = current.x + dx, current.y + dy
+            if 0 <= new_x < GRID_WIDTH and 0 <= new_y < GRID_HEIGHT and (new_x, new_y) not in visited and (new_x, new_y) not in walls:
+                neighbor = Node(new_x, new_y, current)
+                queue.append(neighbor)
+                visited.add((new_x, new_y))
+    return None
 # Main function for Level 1
 def main():
     # ... (Your Level 1 code)
@@ -95,7 +120,8 @@ def main():
             if not path_calculated:
                 start_node = Node(pacman_x, pacman_y)
                 goal_node = Node(food_x, food_y)
-                path = astar_search(start_node, goal_node, obstacles)
+                # path = astar_search(start_node, goal_node, obstacles)
+                path = bfs_search(start_node, goal_node, obstacles)
                 path_calculated = True
 
             if path and ticks < RUNTIME:
