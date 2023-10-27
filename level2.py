@@ -11,12 +11,13 @@ WALL_COLOR = (0, 0, 255)
 RUNTIME = 100
 MOVE_DELAY = 0.3
 
+
 # Node class
 
 
 class Node:
     def __init__(self, state, parent, action):
-        self.state = state
+        self.state = state  # toa do
         self.parent = parent
         self.action = action
         self.g = 0
@@ -173,6 +174,7 @@ class Map:
             self.num_explored += 1
 
             if current.state == self.food:
+
                 actions = []
                 cells = []
 
@@ -184,20 +186,19 @@ class Map:
                 actions.reverse()
                 cells.reverse()
                 self.solution = (actions, cells)
+                print(self.num_explored)
                 return
-            self.explored.add(current.state)
+            self.explored.add(current.state)  # In thu explored theo tung buoc
+            print(self.explored)  # In so nuoc kham phá
 
             for action, state in self.neighbor(current.state):
-                isExist = False
-                for node in frontier:
-                    if node.state == state:
-                        isExist = True
-                        break
-                if not isExist and state not in self.explored:
+                if state not in self.explored:
                     child = Node(state=state, parent=current, action=action)
-                    child.h = abs(
-                        child.state[0] - self.food[0]) + abs(child.state[1] - self.food[1])
+                    child.g = 0
+                    child.h = abs(child.state[0] - self.food[0]) + abs(child.state[1] - self.food[1])
                     heapq.heappush(frontier, child)
+
+
 # solve map
 
 
@@ -332,6 +333,7 @@ def solve_map(selected_option):
                 screen.blit(text, text_rect)
 
         pygame.display.flip()
+
 
 # Main function for Level 2
 def main():
