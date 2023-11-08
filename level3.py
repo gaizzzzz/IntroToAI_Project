@@ -1,5 +1,5 @@
 # import pygame
-# import random
+#
 # import heapq
 # import time
 #
@@ -213,6 +213,7 @@ import heapq
 import pygame
 import time
 from pygame.locals import *
+import random
 
 RUNTIME = 100
 MOVE_DELAY = 0.3
@@ -266,6 +267,19 @@ def find_monster_neighbor(monster_state, matrix):
 
     return results
 
+# Helper function to move the monster randomly
+def move_monster_randomly(monster_x, monster_y, obstacles,GRID_WIDTH,GRID_HEIGHT):
+    possible_moves = [
+        (monster_x - 1, monster_y),
+        (monster_x + 1, monster_y),
+        (monster_x, monster_y - 1),
+        (monster_x, monster_y + 1)
+    ]
+    # Filter out moves that hit obstacles or go out of bounds
+    valid_moves = [(x, y) for x, y in possible_moves if 0 <= x < GRID_WIDTH and 0 <= y < GRID_HEIGHT and (x, y) not in obstacles]
+    if valid_moves:
+        return random.choice(valid_moves)
+    return monster_x, monster_y
 
 def find_pacman_vision(state, map_matrix):
     r = len(map_matrix)
@@ -385,6 +399,7 @@ def solve_map(selected_map):
     for i in range(0, size[0]):
         pointer = list(map(int, f.readline().split()))
         map_matrix.append(pointer)
+
     pointer = f.readline().split()
     pacman_state = (int(pointer[0]), int(pointer[1]))
     pacman_x, pacman_y = pacman_state
@@ -437,8 +452,13 @@ def solve_map(selected_map):
                 # print(f"Path: {path}")
                 ticks += 1
                 time.sleep(MOVE_DELAY)
+                # Move the monster randomly
+                monster_x, monster_y = move_monster_randomly(monster_x, monster_y, walls, GRID_WIDTH, GRID_HEIGHT)
 
             # Check for collision with the monster
+
+            print(pacman_x, pacman_y," ",(monster_x,monster_y))
+
             if (pacman_x, pacman_y) == (monster_x, monster_y):
                 game_over = True
                 lose_message_displayed = True
