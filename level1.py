@@ -213,7 +213,7 @@ class Map:
 # solve map
 def solve_map(selected_option):
     # Initialize map
-    filename = f'E:\CSC14003_IntroToAI-main\AI-Pacman-main\levels\map{selected_option + 1}.txt'
+    filename = f'map{selected_option + 1}.txt'
     gameplay = Map(filename)
 
     # Create the display surface
