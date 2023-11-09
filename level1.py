@@ -5,7 +5,7 @@ import heapq
 
 # Constants for ingame objects
 PACMAN_COLOR = (255, 255, 0)
-FOOD_COLOR = (255, 165, 0)
+FOOD_COLOR = (255, 255, 255)
 WALL_COLOR = (0, 0, 255)
 RUNTIME = 100
 MOVE_DELAY = 0.3
@@ -15,8 +15,6 @@ WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 
 # Node class
-
-
 class Node:
     def __init__(self, state, parent, action):
         self.state = state
@@ -28,34 +26,38 @@ class Node:
     def __lt__(self, other):
         return (self.g + self.h) < (other.g + other.h)
 
-
 class Map:
     def __init__(self, filename):
         with open(filename) as f:
             contents = f.read()
-        if contents.count('P') != 1:
-            raise Exception('The game has only 1 Pac-man')
+            
         contents = contents.splitlines()
+        
         area = contents[0].split(' ')
-        contents = contents[1:]
         self.height = int(area[0])
         self.width = int(area[1])
+        
+        contents = contents[1:]
 
         pacman_position = contents[-1].split(' ')
+        self.pacman = (int(pacman_position[0]), int(pacman_position[1]))
+        
         contents = contents[:-1]
-
+        
+        new_contents = []
+        for line in contents:
+            new_contents.append(line.rstrip('\n').split(' '))
+        contents = new_contents
+        
         self.walls = []
         self.possibleMoves = []
+    
         for i in range(self.height):
             row_wall = []
             row_move = []
             for j in range(self.width):
                 try:
-                    if contents[i][j] == 'P':
-                        self.pacman = (int(pacman_position[0]), int(pacman_position[1]))
-                        row_move.append(False)
-                        row_wall.append(False)
-                    elif contents[i][j] == '2':
+                    if contents[i][j] == '2':
                         self.food = (i, j)
                         row_move.append(False)
                         row_wall.append(False)
@@ -65,13 +67,13 @@ class Map:
                     elif contents[i][j] == '1':
                         row_move.append(False)
                         row_wall.append(True)
-                    elif contents[i][j] == '3':
-                        self.monster = (i, j)
+                    elif (i, j) == self.pac_man:
                         row_move.append(False)
-                        row_wall.append(True)
+                        row_wall.append(False)
                 except IndexError:
                     row_move.append(False)
                     row_wall.append(False)
+                    
             self.walls.append(row_wall)
             self.possibleMoves.append(row_move)
         self.solution = None
@@ -167,8 +169,7 @@ class Map:
                 if not isExist and state not in self.explored:
                     child = Node(state=state, parent=current, action=action)
                     child.g = current.g + 1
-                    child.h = abs(
-                        child.state[0] - self.food[0]) + abs(child.state[1] - self.food[1])
+                    child.h = abs(child.state[0] - self.food[0]) + abs(child.state[1] - self.food[1])
                     heapq.heappush(frontier, child)
 
     def solve_GBFS(self):
@@ -206,16 +207,11 @@ class Map:
                         break
                 if not isExist and state not in self.explored:
                     child = Node(state=state, parent=current, action=action)
-                    child.h = abs(
-                        child.state[0] - self.food[0]) + abs(child.state[1] - self.food[1])
+                    child.h = abs(child.state[0] - self.food[0]) + abs(child.state[1] - self.food[1])
                     heapq.heappush(frontier, child)
 
 # solve map
 def solve_map(selected_option):
-    # Initialize map
-    filename = f'map{selected_option + 1}.txt'
-    gameplay = Map(filename)
-
     # Create the display surface
     pygame.init()
     screen_menu = pygame.display.set_mode((400, 400))
@@ -234,6 +230,10 @@ def solve_map(selected_option):
     # Game loop
     selected_algorithm = 0
     running_menu = True
+    
+    # Initialize map
+    filename = f'Level1-map{selected_option + 1}.txt'
+    gameplay = Map(filename)
 
     # Constants
     GRID_SIZE = 50
@@ -242,16 +242,13 @@ def solve_map(selected_option):
 
     # Initialize game screen
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption(f"Pac-Man Level 2 - Map {selected_option + 1}")
-
+    pygame.display.set_caption(f"Pac-Man Level 1 - Map {selected_option + 1}")
+    
     # Initialize positions
     pacman_y, pacman_x = gameplay.pacman
 
-    # Generate food coordinates
+    # Generate food coordinate
     food_y, food_x = gameplay.food
-
-    # Generate stationary monster coordinates
-    #monster_y, monster_x = gameplay.monster
 
     # Generate walls
     walls = gameplay.walls     
@@ -325,11 +322,6 @@ def solve_map(selected_option):
                                 game_over = True
                                 win_message_displayed = True
 
-                            # Check for collision with the monster
-                            '''if (pacman_x, pacman_y) == (monster_x, monster_y):
-                                game_over = True
-                                lose_message_displayed = True
-                            '''
                             if not path and not game_over and not path_traced:
                                 game_over = True
                                 lose_message_displayed = True
@@ -372,15 +364,9 @@ def solve_map(selected_option):
                                             pacman_y * GRID_SIZE + GRID_SIZE // 2),
                                            GRID_SIZE // 3)
 
-                        # Draw the stationary monster
-                        '''pygame.draw.circle(screen, MONSTER_COLOR,
-                                           (monster_x * GRID_SIZE + GRID_SIZE // 2,
-                                            monster_y * GRID_SIZE + GRID_SIZE // 2),
-                                           GRID_SIZE // 3)'''
-    
                         if path_traced:
                             for cell in visited_cells:
-                                pygame.draw.rect(screen, (200, 200, 200),
+                                pygame.draw.rect(screen, (0, 255, 0),
                                                  (cell[0] * GRID_SIZE, cell[1] * GRID_SIZE,
                                                   GRID_SIZE, GRID_SIZE))
 
@@ -422,7 +408,7 @@ def main():
     FONT = pygame.font.Font(None, 36)
 
     # Menu options
-    options = ["Map 1", "Map 2"]
+    options = ["Map 1", "Map 2", "Map 3"]
 
     # Position for menu items
     menu_rects = [FONT.render("   " + option, True, WHITE).
@@ -456,9 +442,11 @@ def main():
                 elif event.key == K_DOWN:
                     selected_map = (selected_map + 1) % len(options)
                 elif event.key == K_RETURN:
-                    if selected_map == 0:  # Start Map 1
+                    if selected_map == 0:   # Start Map 1
                         solve_map(selected_map)
-                    elif selected_map == 1:  # Start Map 2
+                    elif selected_map == 1: # Start Map 2
+                        solve_map(selected_map)
+                    elif selected_map == 2: # Start Map 3
                         solve_map(selected_map)
 
         draw_menu()
