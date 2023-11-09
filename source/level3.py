@@ -155,12 +155,14 @@ def find_path(map_matrix, pacman_state, foods, monster_state):
             next_node.h = find_heuristic(state, explores, foods_visible, monster_visible)
             heapq.heappush(frontiers, next_node)
 
-    return path
+    return path, len(explores)
 
 
 def find_full_path(map_matrix, pacman_state, foods, monster_state):
     foods_save = foods[:]
-    path = find_path(map_matrix, pacman_state, foods, monster_state)
+    num_explores = 0
+    path, len_explores = find_path(map_matrix, pacman_state, foods, monster_state)
+    num_explores += len_explores
     while True:
         for i in path:
             if i in foods_save:
@@ -174,13 +176,14 @@ def find_full_path(map_matrix, pacman_state, foods, monster_state):
 
         new_start_state = path[len(path) - 1]
         foods_save_temp = foods_save[:]
-        new_path = find_path(map_matrix, new_start_state, foods_save_temp, monster_state)
+        new_path, len_explores = find_path(map_matrix, new_start_state, foods_save_temp, monster_state)
+        num_explores += len_explores
         path += new_path
 
-    return path
+    return path, num_explores
 
 def solve_map(selected_map):
-    filename = f"level3_map{selected_map + 1}.txt"
+    filename = f"../input/level3_map{selected_map + 1}.txt"
     f = open(filename)
     pointer = f.readline().split()
     size = (int(pointer[0]), int(pointer[1]))
@@ -210,7 +213,7 @@ def solve_map(selected_map):
                 monster_state = (i, j)
     monster_x, monster_y = monster_state
 
-    path = find_full_path(map_matrix, pacman_state, foods, monster_state)
+    path, num_explores = find_full_path(map_matrix, pacman_state, foods, monster_state)
 
     GRID_SIZE = 60
     pygame.init()
@@ -228,11 +231,20 @@ def solve_map(selected_map):
 
     def drawScore(score_map):
         text_font = pygame.font.SysFont("Arial", 36)
-        surface = pygame.Surface((size[0] * GRID_SIZE, 2 * GRID_SIZE))
+        surface = pygame.Surface((size[0] * GRID_SIZE, 1 * GRID_SIZE))
         surface.fill((255, 255, 255))
         screen.blit(surface, ((size[1] * GRID_SIZE, size[0] * GRID_SIZE)))
         score = text_font.render(f'Score: {score_map}', True, (255, 255, 255))
         screen.blit(score, (GRID_SIZE, size[0] * GRID_SIZE))
+
+    def drawPathLength(path_length):
+        text_font = pygame.font.SysFont("Arial", 36)
+        surface = pygame.Surface((size[0] * GRID_SIZE, 1 * GRID_SIZE))
+        surface.fill((255, 255, 255))
+        screen.blit(surface, ((size[1] * GRID_SIZE, size[0] * GRID_SIZE)))
+        score = text_font.render(f'Path length: {path_length}', True, (255, 255, 255))
+        screen.blit(score, (GRID_SIZE, (size[0] + 1) * GRID_SIZE))
+
 
 
     while running:
@@ -311,11 +323,13 @@ def solve_map(selected_map):
                 text = font.render("You Win!", True, (0, 255, 0))
                 text_rect = text.get_rect(center=(width // 2, height // 2))
                 screen.blit(text, text_rect)
+                drawPathLength(num_explores)
             elif lose_message_displayed:
                 font = pygame.font.Font(None, 36)
                 text = font.render("You Lose!", True, (255, 0, 0))
                 text_rect = text.get_rect(center=(width // 2, height // 2))
                 screen.blit(text, text_rect)
+                drawPathLength(num_explores)
 
         pygame.display.flip()
 

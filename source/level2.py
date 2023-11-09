@@ -221,7 +221,7 @@ class Map:
 # solve map
 def solve_map(selected_option):
     # Initialize map
-    filename = f'Level2-map{selected_option + 1}.txt'
+    filename = f'../input/Level2-map{selected_option + 1}.txt'
     gameplay = Map(filename)
 
     # Create the display surface
@@ -250,8 +250,6 @@ def solve_map(selected_option):
 
     m = gameplay.width
     n = gameplay.height
-
-    print(f"{n} {m}")
 
     # Initialize game screen
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -312,13 +310,23 @@ def solve_map(selected_option):
                     lose_message_displayed = False
 
                     score_map = 0
+                    path_length = 0
+
                     def drawScore(score_map):
                         text_font = pygame.font.SysFont("Arial", 36)
-                        surface = pygame.Surface((n * GRID_SIZE, 2 * GRID_SIZE))
+                        surface = pygame.Surface((n * GRID_SIZE, 1 * GRID_SIZE))
                         surface.fill((255, 255, 255))
                         screen.blit(surface, ((m * GRID_SIZE, n * GRID_SIZE)))
                         score = text_font.render(f'Score: {score_map}', True, (255, 255, 255))
                         screen.blit(score, (GRID_SIZE, n * GRID_SIZE))
+
+                    def drawPathLength(path_length):
+                        text_font = pygame.font.SysFont("Arial", 36)
+                        surface = pygame.Surface((n * GRID_SIZE, 1 * GRID_SIZE))
+                        surface.fill((255, 255, 255))
+                        screen.blit(surface, ((m * GRID_SIZE, n * GRID_SIZE)))
+                        score = text_font.render(f'Path length: {path_length}', True, (255, 255, 255))
+                        screen.blit(score, (GRID_SIZE, (n + 1) * GRID_SIZE))
 
                     while running:
                         for event in pygame.event.get():
@@ -334,6 +342,7 @@ def solve_map(selected_option):
                                     gameplay.solve_Astar()
 
                                 path = gameplay.solution[1]
+                                path_length = gameplay.num_explored
                                 path_calculated = True
 
                             if path and ticks < RUNTIME:
@@ -423,6 +432,7 @@ def solve_map(selected_option):
                                 text_rect = text.get_rect(
                                     center=(WIDTH // 2, HEIGHT // 2))
                                 screen.blit(text, text_rect)
+                                drawPathLength(path_length)
                             elif lose_message_displayed:
                                 FONT = pygame.font.Font(None, 36)
                                 text = FONT.render(
@@ -430,6 +440,7 @@ def solve_map(selected_option):
                                 text_rect = text.get_rect(
                                     center=(WIDTH // 2, HEIGHT // 2))
                                 screen.blit(text, text_rect)
+                                drawPathLength(path_length)
 
                         pygame.display.flip()
 
