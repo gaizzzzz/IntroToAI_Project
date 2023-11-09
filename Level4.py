@@ -299,15 +299,10 @@ class Game:
     def ghostMove(self, position, idx):
        self.Ghosts[idx].changePosition(position)
 
-
-
     def pacmanMove(self, position):
-
         newPosition = position
 
         self.Player.changePosition(newPosition)
-
-
 
         isPacmanEatFood, foodIndex = self.checkEatFood()
         if isPacmanEatFood:
@@ -350,7 +345,7 @@ def drawScore():
 
 
 def handle_input():
-    map_name = input("Enter map name: ")
+    map_name = "Level4-map1.txt"
 
     file = open(map_name, 'r')
     # count number of line

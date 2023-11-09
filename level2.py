@@ -245,8 +245,13 @@ def solve_map(selected_option):
 
     # Constants
     GRID_SIZE = 50
-    WIDTH, HEIGHT = gameplay.width * 50, gameplay.height * 50
+    WIDTH, HEIGHT = gameplay.width * 50, (gameplay.height + 2) * 50
     GRID_WIDTH, GRID_HEIGHT = WIDTH // GRID_SIZE, HEIGHT // GRID_SIZE
+
+    m = gameplay.width
+    n = gameplay.height
+
+    print(f"{n} {m}")
 
     # Initialize game screen
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -306,6 +311,15 @@ def solve_map(selected_option):
                     win_message_displayed = False
                     lose_message_displayed = False
 
+                    score_map = 0
+                    def drawScore(score_map):
+                        text_font = pygame.font.SysFont("Arial", 36)
+                        surface = pygame.Surface((n * GRID_SIZE, 2 * GRID_SIZE))
+                        surface.fill((255, 255, 255))
+                        screen.blit(surface, ((m * GRID_SIZE, n * GRID_SIZE)))
+                        score = text_font.render(f'Score: {score_map}', True, (255, 255, 255))
+                        screen.blit(score, (GRID_SIZE, n * GRID_SIZE))
+
                     while running:
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
@@ -326,10 +340,12 @@ def solve_map(selected_option):
                                 pacman_y, pacman_x = path[0]
                                 visited_cells.add((pacman_x, pacman_y))
                                 path = path[1:]
+                                score_map -= 1
                                 ticks += 1
                                 time.sleep(MOVE_DELAY)
 
                             if (pacman_x, pacman_y) == (food_x, food_y):
+                                score_map += 20
                                 game_over = True
                                 win_message_displayed = True
 
@@ -344,8 +360,8 @@ def solve_map(selected_option):
 
                         screen.fill((0, 0, 0))
 
-                        for x in range(GRID_WIDTH):
-                            for y in range(GRID_HEIGHT):
+                        for x in range(m):
+                            for y in range(n):
                                 pygame.draw.rect(screen, (255, 255, 255),
                                                  (x * GRID_SIZE, y * GRID_SIZE,
                                                   GRID_SIZE, GRID_SIZE), 1)
@@ -386,6 +402,8 @@ def solve_map(selected_option):
                                             monster_y * GRID_SIZE + GRID_SIZE // 2),
                                            GRID_SIZE // 3)
 
+                        drawScore(score_map)
+
                         if path_traced:
                             for cell in visited_cells:
                                 pygame.draw.rect(screen, (0, 255, 0),
@@ -394,6 +412,8 @@ def solve_map(selected_option):
 
                         if not path and not path_traced:
                             path_traced = True
+
+
 
                         if game_over:
                             if win_message_displayed:
