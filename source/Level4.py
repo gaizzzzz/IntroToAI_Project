@@ -456,3 +456,4 @@ if __name__ == "__main__":
     drawFinish(state)
     pygame.display.update()
     time.sleep(5)
+    pygame.quit()
