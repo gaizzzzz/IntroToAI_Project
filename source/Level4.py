@@ -139,7 +139,7 @@ def pacmanMove_GBFS(map, currentPos, lastPos, monsters, numOfFood, score, trace)
 
     result = (-math.inf, [])
     for x in sorted_options:
-        output = pacmanMove_min(copy.deepcopy(map), x, currentPos, copy.deepcopy(monsters), numOfFood, score, trace2)
+        output = pacmanMoveExplored(copy.deepcopy(map), x, currentPos, copy.deepcopy(monsters), numOfFood, score, trace2)
         if output[0] > result[0]:
             result = output
         elif output[0] == result[0] and len(output[1]) < len(result[1]):
@@ -149,7 +149,7 @@ def pacmanMove_GBFS(map, currentPos, lastPos, monsters, numOfFood, score, trace)
 
 
 
-def pacmanMove_min(map, currentPos, lastPos, monsters, numOfFood, score, trace):
+def pacmanMoveExplored(map, currentPos, lastPos, monsters, numOfFood, score, trace):
     trace2 = copy.deepcopy(trace)
 
     for i in range(len(monsters)):  # cập nhật lại vị trí mới của quái vật trong mảng monster
