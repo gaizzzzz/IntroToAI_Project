@@ -345,7 +345,7 @@ def drawScore():
 
 
 def handle_input():
-    map_name = "../input/Level4-map1.txt"
+    map_name = "../input/level4-map1.txt"
 
     file = open(map_name, 'r')
     # count number of line

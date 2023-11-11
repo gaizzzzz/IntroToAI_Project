@@ -231,7 +231,7 @@ def solve_map(selected_option):
     running_menu = True
     
     # Initialize map
-    filename = f'../input/Level1-map{selected_option + 1}.txt'
+    filename = f'../input/level1-map{selected_option + 1}.txt'
     gameplay = Map(filename)
 
     # Constants
@@ -312,7 +312,7 @@ def solve_map(selected_option):
                         surface = pygame.Surface((n * GRID_SIZE, 1 * GRID_SIZE))
                         surface.fill((255, 255, 255))
                         screen.blit(surface, ((m * GRID_SIZE, n * GRID_SIZE)))
-                        score = text_font.render(f'Path length: {path_length}', True, (255, 255, 255))
+                        score = text_font.render(f'Explored Node: {path_length}', True, (255, 255, 255))
                         screen.blit(score, (GRID_SIZE, (n + 1) * GRID_SIZE))
 
                     while running:

@@ -255,7 +255,7 @@ def solve_map(selected_map):
 
             # Check for collision with the monster
 
-            print(pacman_x, pacman_y," ",(monster_x,monster_y))
+            # print(pacman_x, pacman_y," ",(monster_x,monster_y))
 
             if (pacman_x, pacman_y) == (monster_x, monster_y):
                 game_over = True
