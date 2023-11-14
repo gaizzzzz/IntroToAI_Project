@@ -337,7 +337,7 @@ def main():
     FONT = pygame.font.Font(None, 36)
 
     # Menu options
-    options = ["Map 1", "Map 2"]
+    options = ["Map 1", "Map 2", "Map 3"]
 
     # Position for menu items
     menu_rects = [FONT.render("   " + option, True, WHITE).
@@ -374,6 +374,8 @@ def main():
                     if selected_map == 0:  # Start Map 1
                         solve_map(selected_map)
                     elif selected_map == 1:  # Start Map 2
+                        solve_map(selected_map)
+                    elif selected_map == 2:  # Start Map 3
                         solve_map(selected_map)
 
         draw_menu()
