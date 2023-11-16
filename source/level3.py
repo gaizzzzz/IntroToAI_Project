@@ -4,7 +4,7 @@ import time
 from pygame.locals import *
 import random
 
-RUNTIME = 100
+RUNTIME = 1000
 MOVE_DELAY = 0.3
 WALL_COLOR = (0, 0, 255)
 WHITE = (255, 255, 255)
@@ -56,8 +56,9 @@ def find_monster_neighbor(monster_state, matrix):
 
     return results
 
+
 # Helper function to move the monster randomly
-def move_monster_randomly(monster_x, monster_y, obstacles,GRID_WIDTH,GRID_HEIGHT):
+def move_monster_randomly(monster_x, monster_y, obstacles, map_matrix):
     possible_moves = [
         (monster_x - 1, monster_y),
         (monster_x + 1, monster_y),
@@ -65,10 +66,13 @@ def move_monster_randomly(monster_x, monster_y, obstacles,GRID_WIDTH,GRID_HEIGHT
         (monster_x, monster_y + 1)
     ]
     # Filter out moves that hit obstacles or go out of bounds
-    valid_moves = [(x, y) for x, y in possible_moves if 0 <= x < GRID_WIDTH and 0 <= y < GRID_HEIGHT and (x, y) not in obstacles]
+    n = len(map_matrix)
+    m = len(map_matrix[0])
+    valid_moves = [(x, y) for x, y in possible_moves if 0 <= x < n and 0 <= y < m and (x, y) not in obstacles]
     if valid_moves:
         return random.choice(valid_moves)
     return monster_x, monster_y
+
 
 def find_pacman_vision(state, map_matrix):
     r = len(map_matrix)
@@ -93,7 +97,7 @@ def find_pacman_vision(state, map_matrix):
 
 def find_heuristic(state, explores, foods_visible, monster_state):
     if state in foods_visible:
-        return -1
+        return -100
     if monster_state is not None:
         row, col = monster_state
         if state in [(row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1), (row, col)]:
@@ -106,31 +110,32 @@ def find_heuristic(state, explores, foods_visible, monster_state):
         return min(heu)
     return 0
 
+
 def find_path(map_matrix, pacman_state, foods, monster_state):
     start_node = Node(state=pacman_state, parent=None, action=None)
     monster_node = Node(state=monster_state, parent=None, action=None)
-    frontiers = []  # chứa các Node được đi đến
-    explores = []  # chứa các Node đã đươc khám phá
+    frontiers = []
+    explores = []
     heapq.heappush(frontiers, start_node)
     actions = []
     path = []
     node = None
     while frontiers:
         current_node = heapq.heappop(frontiers)
-        # print(current_node.state)
         explores.append(current_node.state)
 
         if current_node.state in foods:
             map_matrix[current_node.state[0]][current_node.state[1]] = 0
             foods.remove(current_node.state)
-            if len(foods) == 0:
-                while current_node.parent is not None:
-                    actions.append(current_node.action)
-                    path.append(current_node.state)
-                    current_node = current_node.parent
-                actions.reverse()
-                path.reverse()
-                break
+
+            while current_node.parent is not None:
+                actions.append(current_node.action)
+                path.append(current_node.state)
+                current_node = current_node.parent
+            path.reverse()
+            actions.reverse()
+            break
+
         if current_node.state == monster_node.state:
             break
 
@@ -144,25 +149,25 @@ def find_path(map_matrix, pacman_state, foods, monster_state):
                     foods_visible.append((i, j))
         if rs <= monster_node.state[0] < re and cs <= monster_node.state[1] < ce:
             monster_visible = monster_state
+
         # update heuristic cho cac frontier
         for node in frontiers:
             node.g = find_heuristic(node.state, explores, foods_visible, monster_visible)
-        # find neighbor phai tinh theo node trong
+
         neighbours = find_neighbor(current_node, map_matrix)
         for action, state in neighbours:
-            next_node = Node(state=state, parent=current_node, action=action)
-            next_node.g = current_node.g + 1
-            next_node.h = find_heuristic(state, explores, foods_visible, monster_visible)
-            heapq.heappush(frontiers, next_node)
+            if state not in explores:
+                next_node = Node(state=state, parent=current_node, action=action)
+                next_node.g = current_node.g + 1
+                next_node.h = find_heuristic(state, explores, foods_visible, monster_visible)
+                heapq.heappush(frontiers, next_node)
 
-    return path, len(explores)
+    return path
 
 
 def find_full_path(map_matrix, pacman_state, foods, monster_state):
     foods_save = foods[:]
-    num_explores = 0
-    path, len_explores = find_path(map_matrix, pacman_state, foods, monster_state)
-    num_explores += len_explores
+    path = find_path(map_matrix, pacman_state, foods, monster_state)
     while True:
         for i in path:
             if i in foods_save:
@@ -170,17 +175,16 @@ def find_full_path(map_matrix, pacman_state, foods, monster_state):
         if len(foods_save) == 0:
             break
 
-        # Khôi phục map_matrix
         for food in foods_save:
             map_matrix[food[0]][food[1]] = 2
 
         new_start_state = path[len(path) - 1]
         foods_save_temp = foods_save[:]
-        new_path, len_explores = find_path(map_matrix, new_start_state, foods_save_temp, monster_state)
-        num_explores += len_explores
+        new_path = find_path(map_matrix, new_start_state, foods_save_temp, monster_state)
         path += new_path
 
-    return path, num_explores
+    return path
+
 
 def solve_map(selected_map):
     filename = f"../input/level3_map{selected_map + 1}.txt"
@@ -213,9 +217,9 @@ def solve_map(selected_map):
                 monster_state = (i, j)
     monster_x, monster_y = monster_state
 
-    path, num_explores = find_full_path(map_matrix, pacman_state, foods, monster_state)
+    path = find_full_path(map_matrix, pacman_state, foods, monster_state)
 
-    GRID_SIZE = 60
+    GRID_SIZE = 40
     pygame.init()
     pygame.display.set_caption(f"Pac-Man Level 3 - Map {selected_map + 1}")
     height, width = (size[0] + 2) * GRID_SIZE, size[1] * GRID_SIZE
@@ -228,24 +232,6 @@ def solve_map(selected_map):
     win_message_displayed = False
     lose_message_displayed = False
     score_map = 0
-
-    def drawScore(score_map):
-        text_font = pygame.font.SysFont("Arial", 36)
-        surface = pygame.Surface((size[0] * GRID_SIZE, 1 * GRID_SIZE))
-        surface.fill((255, 255, 255))
-        screen.blit(surface, ((size[1] * GRID_SIZE, size[0] * GRID_SIZE)))
-        score = text_font.render(f'Score: {score_map}', True, (255, 255, 255))
-        screen.blit(score, (GRID_SIZE, size[0] * GRID_SIZE))
-
-    def drawPathLength(path_length):
-        text_font = pygame.font.SysFont("Arial", 36)
-        surface = pygame.Surface((size[0] * GRID_SIZE, 1 * GRID_SIZE))
-        surface.fill((255, 255, 255))
-        screen.blit(surface, ((size[1] * GRID_SIZE, size[0] * GRID_SIZE)))
-        score = text_font.render(f'Path length: {path_length}', True, (255, 255, 255))
-        screen.blit(score, (GRID_SIZE, (size[0] + 1) * GRID_SIZE))
-
-
 
     while running:
         for event in pygame.event.get():
@@ -265,7 +251,7 @@ def solve_map(selected_map):
                 time.sleep(MOVE_DELAY)
                 score_map = score_map - 1
                 # Move the monster randomly
-                monster_x, monster_y = move_monster_randomly(monster_x, monster_y, walls, GRID_WIDTH, GRID_HEIGHT)
+                monster_x, monster_y = move_monster_randomly(monster_x, monster_y, walls, map_matrix)
 
             # Check for collision with the monster
 
@@ -315,7 +301,12 @@ def solve_map(selected_map):
                            (pacman_y * GRID_SIZE + GRID_SIZE // 2, pacman_x * GRID_SIZE + GRID_SIZE // 2),
                            GRID_SIZE // 2)
 
-        drawScore(score_map)
+        text_font = pygame.font.SysFont("Arial", 36)
+        surface = pygame.Surface((size[0] * GRID_SIZE, 1 * GRID_SIZE))
+        surface.fill((255, 255, 255))
+        screen.blit(surface, ((size[1] * GRID_SIZE, size[0] * GRID_SIZE)))
+        score = text_font.render(f'Score: {score_map}', True, (255, 255, 255))
+        screen.blit(score, (GRID_SIZE, size[0] * GRID_SIZE))
 
         if game_over:
             if win_message_displayed:
@@ -323,17 +314,15 @@ def solve_map(selected_map):
                 text = font.render("You Win!", True, (0, 255, 0))
                 text_rect = text.get_rect(center=(width // 2, height // 2))
                 screen.blit(text, text_rect)
-                drawPathLength(num_explores)
             elif lose_message_displayed:
                 font = pygame.font.Font(None, 36)
                 text = font.render("You Lose!", True, (255, 0, 0))
                 text_rect = text.get_rect(center=(width // 2, height // 2))
                 screen.blit(text, text_rect)
-                drawPathLength(num_explores)
 
         pygame.display.flip()
 
-# Đọc map
+
 def main():
     # filename = input("Input file map (level3_map<>.txt): ")
 
@@ -348,7 +337,7 @@ def main():
     FONT = pygame.font.Font(None, 36)
 
     # Menu options
-    options = ["Map 1", "Map 2"]
+    options = ["Map 1", "Map 2", "Map 3"]
 
     # Position for menu items
     menu_rects = [FONT.render("   " + option, True, WHITE).
@@ -386,10 +375,13 @@ def main():
                         solve_map(selected_map)
                     elif selected_map == 1:  # Start Map 2
                         solve_map(selected_map)
+                    elif selected_map == 2:  # Start Map 3
+                        solve_map(selected_map)
 
         draw_menu()
         pygame.display.flip()
     pygame.quit()
+
 
 if __name__ == "__main__":
     main()

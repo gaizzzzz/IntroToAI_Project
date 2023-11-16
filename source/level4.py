@@ -7,29 +7,32 @@ one_block_size = 30 #pixel
 SCREEN_HEIGHT = 20 * one_block_size
 SCREEN_WIDTH = SCREEN_HEIGHT * 2
 
-#SOME VARIABLE
+# SOME VARIABLE
 GAME_NAME = 'Pacman'
 FPS = 30
 running = True
 
-#SET COLORS
+# SET COLORS
 WALL_COLOR = (3, 64, 214)
 GHOST_COLOR = (255, 0, 0) #red
 PACMAN_COLOR = (255,255,0)
 FOODS_COLOR = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-#CheckFinish
+# CheckFinish
 WIN = 0
 LOSE = 1
 CONTINUE = 2
+
+
 def readFile(path):
     global pacmanX, pacmanY
     f = open(path, 'r')
 
     size = [int(x) for x in f.readline().strip().split(' ')]
-    Nrow = size[0]
-    Ncol = size[1]
+    Ncol = size[0]
+    Nrow = size[1]
+
 
     adjacencyMatrix = []
     for i in range(Ncol):
@@ -47,7 +50,7 @@ def readFile(path):
     return adjacencyMatrix
 
 
-# hàm lấy vị trí quái và số lượng thức ăn từ map
+# Hàm lấy vị trí quái và số lượng thức ăn từ map
 def getInfo(map):
     monsters = []
     numOfFood = 0
@@ -61,14 +64,13 @@ def getInfo(map):
     return (monsters, numOfFood)
 
 
-
-# hàm cho monster di chuyển
+# Hàm cho monster di chuyển
 def monstersMove(map, monsterPos, pacman):
     if monsterPos[0] == pacman[0] and monsterPos[1] == pacman[1]:
         return (monsterPos[0], monsterPos[1])
 
     option = []
-    # thêm các ô lân cận nếu không phải tường
+    # tThêm các ô lân cận nếu không phải tường
     if int(map[monsterPos[0] - 1][monsterPos[1]]) != 1:
         option.append((monsterPos[0] - 1, monsterPos[1]))
     if int(map[monsterPos[0]][monsterPos[1] + 1]) != 1:
@@ -77,7 +79,6 @@ def monstersMove(map, monsterPos, pacman):
         option.append((monsterPos[0] + 1, monsterPos[1]))
     if int(map[monsterPos[0]][monsterPos[1] - 1]) != 1:
         option.append((monsterPos[0], monsterPos[1] - 1))
-
 
     if not option:
         return (monsterPos[0], monsterPos[1])
@@ -91,7 +92,7 @@ def monstersMove(map, monsterPos, pacman):
     return option[shortest]
 
 
-# hàm kiểm tra va cham voi quai vat
+# Hàm kiểm tra va cham voi quai vat
 def isCollide(pacman, monsters):
     for m in monsters:
         if m[0] == pacman[0] and m[1] == pacman[1]:
@@ -99,7 +100,7 @@ def isCollide(pacman, monsters):
     return False
 
 
-#ham ap dung thuat toan GBFS cho phep pacman di chuyen tim thuc an
+# Ham ap dung thuat toan GBFS cho phep pacman di chuyen tim thuc an
 def pacmanMove_GBFS(map, currentPos, lastPos, monsters, numOfFood, score, trace):
     trace2 = copy.deepcopy(trace)
     trace2.append(currentPos)
@@ -148,23 +149,22 @@ def pacmanMove_GBFS(map, currentPos, lastPos, monsters, numOfFood, score, trace)
     return result
 
 
-
 def pacmanMoveExplored(map, currentPos, lastPos, monsters, numOfFood, score, trace):
     trace2 = copy.deepcopy(trace)
 
-    for i in range(len(monsters)):  # cập nhật lại vị trí mới của quái vật trong mảng monster
+    for i in range(len(monsters)):  # Cập nhật lại vị trí mới của quái vật trong mảng monster
         monsters[i] = monstersMove(map, monsters[i], currentPos)
 
     result = pacmanMove_GBFS(copy.deepcopy(map), currentPos, lastPos, copy.deepcopy(monsters), numOfFood, score, trace2)
     return result
 
 
-# hàm level 4, chỉ càn gọi hàm này là được
+# hàm level 4 handle
 def level4(map, numOfFood, monsters, pacman):
     map_copy = copy.deepcopy(map)
-    monstersPos = copy.deepcopy(monsters)  # không làm ảnh hưởng mảng gốc
+    monstersPos = copy.deepcopy(monsters)  # Không làm ảnh hưởng mảng gốc
 
-    # khởi tạo mảng để lưu bước đi của monster
+    # Khởi tạo mảng để lưu bước đi của monster
     monstersMoveList = []
     if monsters:
         for i in range(len(monsters)):
@@ -175,18 +175,15 @@ def level4(map, numOfFood, monsters, pacman):
     while numOfFood > 0:
         output = pacmanMove_GBFS(map_copy, pacmanMoveList[-1], pacmanMoveList[-1], monstersPos, numOfFood, 0, [])
 
-        # print(len(output[1]), output[1], output[2])
-
         if not output[1]:
             print("stop by break")
             break
 
         numOfFood -= output[0]
-
         numEaten += output[0]
-
         temp = output[1].pop(0)
         pacmanMoveList = pacmanMoveList + output[1]
+
         for p in output[1]:
             for m in range(len(monstersMoveList)):
                 monstersMoveList[m].append(monstersMove(map, monstersMoveList[m][-1], p))
@@ -237,7 +234,10 @@ class sprite:
 class Wall(sprite):
     def __init__(self, position) -> None:
         super().__init__(position)
-        pygame.draw.rect(self.surface, WALL_COLOR, (0, 0, 30, 30), 2)
+        pygame.draw.rect(self.surface, (0, 0, 255), (0, 0, 30, 30))
+        pygame.draw.rect(self.surface, (255, 255, 255), (0, 0, 30, 30), 1)
+        # pygame.draw.line(self.surface, (0, 0, 0), (position[1] * 30, position[0] * 30), (position[1] * 30 + 30, position[0] * 30 + 30), 3)
+        # pygame.draw.line(self.surface, (0, 0, 0), (position[1] * 30, position[0] * 30 + 30), (position[1] * 30 + 30, position[0] * 30), 3)
         self.draw()
 
 
@@ -307,7 +307,6 @@ class Game:
         isPacmanEatFood, foodIndex = self.checkEatFood()
         if isPacmanEatFood:
             self.Point += 20
-            # self.Matrix[self.Foods[foodIndex].currentPosition[0]][self.Foods[foodIndex].currentPosition[1]] = 0
             self.Foods.pop(foodIndex)
 
         self.Point -= 1
@@ -345,7 +344,7 @@ def drawScore():
 
 
 def handle_input():
-    map_name = "../input/level4-map1.txt"
+    map_name = "../input/level4_map1.txt"
 
     file = open(map_name, 'r')
     # count number of line
@@ -365,8 +364,8 @@ def handle_input():
         idx += 1
     file.close()
 
-    size_x = int(size[0])
-    size_y = int(size[1])
+    size_x = int(size[1])
+    size_y = int(size[0])
 
     x = int(position[0])
     y = int(position[1])

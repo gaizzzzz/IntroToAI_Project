@@ -221,7 +221,7 @@ class Map:
 # solve map
 def solve_map(selected_option):
     # Initialize map
-    filename = f'../input/level2-map{selected_option + 1}.txt'
+    filename = f'../input/level2_map{selected_option + 1}.txt'
     gameplay = Map(filename)
 
     # Create the display surface

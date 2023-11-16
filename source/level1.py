@@ -231,7 +231,7 @@ def solve_map(selected_option):
     running_menu = True
     
     # Initialize map
-    filename = f'../input/level1-map{selected_option + 1}.txt'
+    filename = f'../input/level1_map{selected_option + 1}.txt'
     gameplay = Map(filename)
 
     # Constants
